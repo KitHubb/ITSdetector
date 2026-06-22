@@ -5,6 +5,7 @@ params.outdir = 'results'
 
 include { VALIDATE_SAMPLESHEET } from './modules/local/validate_samplesheet'
 include { RAW_QC } from './subworkflows/local/raw_qc'
+include { READ_CLEANUP } from './subworkflows/local/read_cleanup'
 
 workflow {
 
@@ -20,4 +21,7 @@ workflow {
     VALIDATE_SAMPLESHEET(samplesheet_ch)
 
     RAW_QC(VALIDATE_SAMPLESHEET.out.validated_samplesheet)
+    
+    READ_CLEANUP(VALIDATE_SAMPLESHEET.out.validated_samplesheet)
+    
 }
