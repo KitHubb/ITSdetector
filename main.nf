@@ -1,22 +1,24 @@
 nextflow.enable.dsl = 2
 
-process CHECK_QIIME {
+params.input  = null
+params.outdir = 'results'
 
-    tag 'qiime2-container-check'
-
-    container "${params.qiime_sif}"
-
-    publishDir "${params.outdir}/smoke_test", mode: 'copy', overwrite: true
-
-    output:
-    path 'qiime_version.txt'
-
-    script:
-    """
-    qiime --version > qiime_version.txt
-    """
-}
+include { VALIDATE_SAMPLESHEET } from './modules/local/validate_samplesheet'
 
 workflow {
-    CHECK_QIIME()
+
+    if (!params.input) {
+        error "Please provide --input <samplesheet.csv>"
+    }
+
+    samplesheet_ch = Channel.fromPath(
+        params.input,
+        checkIfExists: true
+    )
+
+    VALIDATE_SAMPLESHEET(samplesheet_ch)
+
+    VALIDATE_SAMPLESHEET.out.validated_samplesheet.view {
+        "Validated samplesheet: ${it}"
+    }
 }
