@@ -4,6 +4,7 @@ params.input  = null
 params.outdir = 'results'
 
 include { VALIDATE_SAMPLESHEET } from './modules/local/validate_samplesheet'
+include { RAW_QC } from './subworkflows/local/raw_qc'
 
 workflow {
 
@@ -18,7 +19,5 @@ workflow {
 
     VALIDATE_SAMPLESHEET(samplesheet_ch)
 
-    VALIDATE_SAMPLESHEET.out.validated_samplesheet.view {
-        "Validated samplesheet: ${it}"
-    }
+    RAW_QC(VALIDATE_SAMPLESHEET.out.validated_samplesheet)
 }
