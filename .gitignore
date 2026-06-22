@@ -1,0 +1,25 @@
+# Nextflow
+work/
+.nextflow/
+.nextflow.log*
+results/
+
+# Sequencing and QIIME2 outputs
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.qza
+*.qzv
+*.biom
+*.rds
+
+# Containers and databases
+*.sif
+containers/
+databases/
+
+# Sensitive files
+.env
+*.key
+*.pem
