@@ -1,20 +1,22 @@
 nextflow.enable.dsl = 2
 
-params.outdir = 'results'
+process CHECK_QIIME {
 
-process HELLO_ITSDETECTOR {
+    tag 'qiime2-container-check'
 
-    publishDir "${params.outdir}/smoke_test", mode: 'copy'
+    container "${params.qiime_sif}"
+
+    publishDir "${params.outdir}/smoke_test", mode: 'copy', overwrite: true
 
     output:
-    path 'hello.txt'
+    path 'qiime_version.txt'
 
     script:
     """
-    echo "ITSdetector Nextflow smoke test passed." > hello.txt
+    qiime --version > qiime_version.txt
     """
 }
 
 workflow {
-    HELLO_ITSDETECTOR()
+    CHECK_QIIME()
 }
