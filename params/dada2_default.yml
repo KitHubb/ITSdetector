@@ -1,0 +1,21 @@
+run_label: dada2_default
+
+dada2_trim_left_f: 0
+dada2_trim_left_r: 0
+dada2_trunc_len_f: 0
+dada2_trunc_len_r: 0
+dada2_max_ee_f: 2.0
+dada2_max_ee_r: 2.0
+
+dada2_trim_left: 0
+dada2_trunc_len: 0
+dada2_max_ee: 2.0
+
+dada2_trunc_q: 2
+dada2_min_overlap: 12
+dada2_max_merge_mismatch: 0
+dada2_trim_overhang: false
+
+dada2_pooling_method: independent
+dada2_chimera_method: consensus
+dada2_n_reads_learn: 1000000

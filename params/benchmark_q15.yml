@@ -1,7 +1,24 @@
 run_label: benchmark_q15
+
 adapter_trim: true
 poly_g_trim: true
+poly_g_min_run: 10
+
 quality_trim: true
 quality_cutoff: 15
+
 apply_min_length: true
 min_length: 50
+
+preprocess_method: both
+analysis_mode: both
+
+primer_fwd: "GTGARTCATCGAATCTTTG"
+primer_rev: "TCCTCCGCTTATTGATATGC"
+primer_fwd_adapter: "GCATATCAATAAGCGGAGGA"
+primer_rev_adapter: "CAAAGATTCGATGAYTCAC"
+primer_discard_untrimmed: false
+
+itsxpress_region: ITS2
+itsxpress_taxa: F
+itsxpress_cluster_id: 1.0
