@@ -9,6 +9,7 @@ include { READ_CLEANUP } from './subworkflows/local/read_cleanup'
 include { CLEANUP_QC } from './subworkflows/local/cleanup_qc_summary'
 include { BUILD_QIIME_MANIFEST } from './subworkflows/local/make_qiime_manifest'
 include { QIIME_IMPORT } from './subworkflows/local/qiime_import'
+include { QIIME_PREPROCESS } from './subworkflows/local/qiime_preprocess'
 
 workflow {
 
@@ -42,5 +43,10 @@ workflow {
     QIIME_IMPORT(
         BUILD_QIIME_MANIFEST.out.pe_manifest,
         BUILD_QIIME_MANIFEST.out.r1_manifest
+    )
+
+    QIIME_PREPROCESS(
+        QIIME_IMPORT.out.demux_pe,
+        QIIME_IMPORT.out.demux_r1
     )
 }
