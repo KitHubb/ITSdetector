@@ -1,13 +1,13 @@
 process QIIME_DADA2_PE {
 
-    tag "${params.run_label}:${meta.method}_${meta.read_mode}"
+    tag { "${params.run_label}:${meta.method}_${meta.read_mode}" }
     label 'qiime_dada2'
 
     container "${params.qiime_sif}"
 
-    publishDir "${params.outdir}/dada2/${meta.method}/${meta.read_mode}",
-        mode: 'copy',
-        overwrite: true
+    publishDir {
+        "${params.outdir}/dada2/${meta.method}/${meta.read_mode}"
+    }, mode: 'copy', overwrite: true
 
     input:
     tuple val(meta), path(demux_pe)
@@ -41,7 +41,7 @@ process QIIME_DADA2_PE {
       "\$MPLCONFIGDIR" \
       "\$XDG_CACHE_HOME"
 
-    # Denoise paired-end reads with configurable truncation and expected-error filtering.
+    # Denoise paired-end reads.
     qiime dada2 denoise-paired \
       --i-demultiplexed-seqs ${demux_pe} \
       --p-trim-left-f ${params.dada2_trim_left_f} \
@@ -59,7 +59,7 @@ process QIIME_DADA2_PE {
       --o-representative-sequences repseq.qza \
       --o-denoising-stats denoising_stats.qza
 
-    # Convert DADA2 statistics into a QIIME 2 visualization.
+    # Create a tabulated DADA2 statistics report.
     qiime metadata tabulate \
       --m-input-file denoising_stats.qza \
       --o-visualization denoising_stats.qzv
@@ -74,14 +74,14 @@ process QIIME_DADA2_PE {
 
 process QIIME_DADA2_SE {
 
-    tag "${params.run_label}:${meta.method}_${meta.read_mode}"
+    tag { "${params.run_label}:${meta.method}_${meta.read_mode}" }
     label 'qiime_dada2'
 
     container "${params.qiime_sif}"
 
-    publishDir "${params.outdir}/dada2/${meta.method}/${meta.read_mode}",
-        mode: 'copy',
-        overwrite: true
+    publishDir {
+        "${params.outdir}/dada2/${meta.method}/${meta.read_mode}"
+    }, mode: 'copy', overwrite: true
 
     input:
     tuple val(meta), path(demux_se)
@@ -115,7 +115,7 @@ process QIIME_DADA2_SE {
       "\$MPLCONFIGDIR" \
       "\$XDG_CACHE_HOME"
 
-    # Denoise single-end reads with configurable truncation and expected-error filtering.
+    # Denoise single-end reads.
     qiime dada2 denoise-single \
       --i-demultiplexed-seqs ${demux_se} \
       --p-trim-left ${params.dada2_trim_left} \
@@ -130,7 +130,7 @@ process QIIME_DADA2_SE {
       --o-representative-sequences repseq.qza \
       --o-denoising-stats denoising_stats.qza
 
-    # Convert DADA2 statistics into a QIIME 2 visualization.
+    # Create a tabulated DADA2 statistics report.
     qiime metadata tabulate \
       --m-input-file denoising_stats.qza \
       --o-visualization denoising_stats.qzv
