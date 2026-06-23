@@ -3,5 +3,5 @@ adapter_trim: true
 poly_g_trim: true
 quality_trim: true
 quality_cutoff: 30
-apply_min_length: false
+apply_min_length: true
 min_length: 50

@@ -11,7 +11,8 @@ process MAKE_QIIME_MANIFEST {
     path read_records
 
     output:
-    path "qiime_manifest_pe.csv", emit: manifest
+    path "qiime_manifest_pe.tsv", emit: pe_manifest
+    path "qiime_manifest_r1.tsv", emit: r1_manifest
     path "qiime_manifest_validation.tsv", emit: validation
     path "versions.yml", emit: versions
 
@@ -19,7 +20,8 @@ process MAKE_QIIME_MANIFEST {
     """
     build_qiime_manifest.py \
       --input ${read_records} \
-      --manifest qiime_manifest_pe.csv \
+      --pe-manifest qiime_manifest_pe.tsv \
+      --r1-manifest qiime_manifest_r1.tsv \
       --validation qiime_manifest_validation.tsv
 
     cat <<-END_VERSIONS > versions.yml
