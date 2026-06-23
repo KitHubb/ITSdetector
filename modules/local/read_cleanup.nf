@@ -29,12 +29,8 @@ process READ_CLEANUP_PE {
         "-a '${poly_g}' -A '${poly_g}'" : ''
 
     def quality_args = params.quality_trim ?
-        "-q ${params.quality_cutoff}" : ''
+        "-q ${params.quality_cutoff},${params.quality_cutoff}" : ''
 
-    /*
-     * apply_min_length=false이면 -m을 적용하지 않음.
-     * 따라서 forward-only benchmark용 R1 보존을 우선함.
-     */
     def min_length_args = params.apply_min_length ?
         "--minimum-length ${params.min_length}" : ''
 

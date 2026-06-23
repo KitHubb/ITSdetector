@@ -1,0 +1,7 @@
+run_label: benchmark_q15
+adapter_trim: true
+poly_g_trim: true
+quality_trim: true
+quality_cutoff: 15
+apply_min_length: false
+min_length: 50
