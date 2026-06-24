@@ -22,3 +22,10 @@ primer_discard_untrimmed: false
 itsxpress_region: ITS2
 itsxpress_taxa: F
 itsxpress_cluster_id: 1.0
+
+
+# DADA2: shared settings
+dada2_trunc_q: 2
+dada2_pooling_method: independent
+dada2_chimera_method: consensus
+dada2_n_reads_learn: 1000000

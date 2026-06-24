@@ -1,0 +1,275 @@
+digraph "flow" {
+rankdir=TB;
+v0 [shape=point,label="",fixedsize=true,width=0.1,xlabel="channel.fromPath"];
+v1 [label="VALIDATE_SAMPLESHEET"];
+v0 -> v1 [label="samplesheet_ch"];
+
+v1 [label="VALIDATE_SAMPLESHEET"];
+v2 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="splitCsv"];
+v1 -> v2 [label="samplesheet"];
+
+v2 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="splitCsv"];
+v3 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatMap"];
+v2 -> v3;
+
+v3 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatMap"];
+v4 [label="RAW_QC:FASTQC"];
+v3 -> v4 [label="reads_ch"];
+
+v4 [label="RAW_QC:FASTQC"];
+v6 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+v4 -> v6 [label="fastqc_reports"];
+
+v4 [label="RAW_QC:FASTQC"];
+v5 [shape=point];
+v4 -> v5;
+
+v6 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+v7 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+v6 -> v7;
+
+v7 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+v8 [label="RAW_QC:MULTIQC"];
+v7 -> v8 [label="fastqc_zips_ch"];
+
+v8 [label="RAW_QC:MULTIQC"];
+v11 [shape=point];
+v8 -> v11 [label="multiqc_report"];
+
+v8 [label="RAW_QC:MULTIQC"];
+v10 [shape=point];
+v8 -> v10;
+
+v8 [label="RAW_QC:MULTIQC"];
+v9 [shape=point];
+v8 -> v9;
+
+v1 [label="VALIDATE_SAMPLESHEET"];
+v12 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="splitCsv"];
+v1 -> v12 [label="samplesheet"];
+
+v12 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="splitCsv"];
+v13 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="filter"];
+v12 -> v13;
+
+v13 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="filter"];
+v14 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+v13 -> v14;
+
+v14 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+v15 [label="READ_CLEANUP:READ_CLEANUP_PE"];
+v14 -> v15 [label="paired_reads_ch"];
+
+v15 [label="READ_CLEANUP:READ_CLEANUP_PE"];
+v22 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+v15 -> v22 [label="cleaned_reads"];
+
+v15 [label="READ_CLEANUP:READ_CLEANUP_PE"];
+v18 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+v15 -> v18 [label="cutadapt_json"];
+
+v15 [label="READ_CLEANUP:READ_CLEANUP_PE"];
+v17 [shape=point];
+v15 -> v17 [label="cutadapt_log"];
+
+v15 [label="READ_CLEANUP:READ_CLEANUP_PE"];
+v16 [shape=point];
+v15 -> v16;
+
+v18 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+v19 [label="CLEANUP_QC:CLEANUP_QC_SUMMARY"];
+v18 -> v19 [label="json_files_ch"];
+
+v19 [label="CLEANUP_QC:CLEANUP_QC_SUMMARY"];
+v21 [shape=point];
+v19 -> v21 [label="summary"];
+
+v19 [label="CLEANUP_QC:CLEANUP_QC_SUMMARY"];
+v20 [shape=point];
+v19 -> v20;
+
+v22 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+v23 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collectFile"];
+v22 -> v23;
+
+v23 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collectFile"];
+v24 [label="BUILD_QIIME_MANIFEST:MAKE_QIIME_MANIFEST"];
+v23 -> v24 [label="read_records_ch"];
+
+v24 [label="BUILD_QIIME_MANIFEST:MAKE_QIIME_MANIFEST"];
+v27 [label="QIIME_IMPORT:QIIME_IMPORT_PE"];
+v24 -> v27 [label="pe_manifest"];
+
+v24 [label="BUILD_QIIME_MANIFEST:MAKE_QIIME_MANIFEST"];
+v30 [label="QIIME_IMPORT:QIIME_IMPORT_SE"];
+v24 -> v30 [label="r1_manifest"];
+
+v24 [label="BUILD_QIIME_MANIFEST:MAKE_QIIME_MANIFEST"];
+v26 [shape=point];
+v24 -> v26 [label="validation"];
+
+v24 [label="BUILD_QIIME_MANIFEST:MAKE_QIIME_MANIFEST"];
+v25 [shape=point];
+v24 -> v25;
+
+v27 [label="QIIME_IMPORT:QIIME_IMPORT_PE"];
+v49 [label="QIIME_PREPROCESS:QIIME_CUTADAPT_PRIMER_PE"];
+v27 -> v49 [label="demux_pe"];
+
+v27 [label="QIIME_IMPORT:QIIME_IMPORT_PE"];
+v29 [shape=point];
+v27 -> v29 [label="demux_pe_qzv"];
+
+v27 [label="QIIME_IMPORT:QIIME_IMPORT_PE"];
+v28 [shape=point];
+v27 -> v28;
+
+v30 [label="QIIME_IMPORT:QIIME_IMPORT_SE"];
+v52 [label="QIIME_PREPROCESS:QIIME_CUTADAPT_PRIMER_SE"];
+v30 -> v52 [label="demux_r1"];
+
+v30 [label="QIIME_IMPORT:QIIME_IMPORT_SE"];
+v32 [shape=point];
+v30 -> v32 [label="demux_r1_qzv"];
+
+v30 [label="QIIME_IMPORT:QIIME_IMPORT_SE"];
+v31 [shape=point];
+v30 -> v31;
+
+v33 [shape=point,label="",fixedsize=true,width=0.1,xlabel="channel.empty"];
+v34 [shape=point];
+v33 -> v34 [label="primer_pe_trimmed"];
+
+v35 [shape=point,label="",fixedsize=true,width=0.1,xlabel="channel.empty"];
+v36 [shape=point];
+v35 -> v36 [label="primer_pe_summary"];
+
+v37 [shape=point,label="",fixedsize=true,width=0.1,xlabel="channel.empty"];
+v38 [shape=point];
+v37 -> v38 [label="primer_se_trimmed"];
+
+v39 [shape=point,label="",fixedsize=true,width=0.1,xlabel="channel.empty"];
+v40 [shape=point];
+v39 -> v40 [label="primer_se_summary"];
+
+v41 [shape=point,label="",fixedsize=true,width=0.1,xlabel="channel.empty"];
+v42 [shape=point];
+v41 -> v42 [label="itsxpress_pe_trimmed"];
+
+v43 [shape=point,label="",fixedsize=true,width=0.1,xlabel="channel.empty"];
+v44 [shape=point];
+v43 -> v44 [label="itsxpress_pe_summary"];
+
+v45 [shape=point,label="",fixedsize=true,width=0.1,xlabel="channel.empty"];
+v46 [shape=point];
+v45 -> v46 [label="itsxpress_se_trimmed"];
+
+v47 [shape=point,label="",fixedsize=true,width=0.1,xlabel="channel.empty"];
+v48 [shape=point];
+v47 -> v48 [label="itsxpress_se_summary"];
+
+v49 [label="QIIME_PREPROCESS:QIIME_CUTADAPT_PRIMER_PE"];
+v63 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+v49 -> v63 [label="primer_pe_trimmed"];
+
+v49 [label="QIIME_PREPROCESS:QIIME_CUTADAPT_PRIMER_PE"];
+v51 [shape=point];
+v49 -> v51 [label="primer_pe_summary"];
+
+v49 [label="QIIME_PREPROCESS:QIIME_CUTADAPT_PRIMER_PE"];
+v50 [shape=point];
+v49 -> v50;
+
+v52 [label="QIIME_PREPROCESS:QIIME_CUTADAPT_PRIMER_SE"];
+v64 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+v52 -> v64 [label="primer_se_trimmed"];
+
+v52 [label="QIIME_PREPROCESS:QIIME_CUTADAPT_PRIMER_SE"];
+v54 [shape=point];
+v52 -> v54 [label="primer_se_summary"];
+
+v52 [label="QIIME_PREPROCESS:QIIME_CUTADAPT_PRIMER_SE"];
+v53 [shape=point];
+v52 -> v53;
+
+v27 [label="QIIME_IMPORT:QIIME_IMPORT_PE"];
+v55 [label="QIIME_PREPROCESS:QIIME_ITSXPRESS_PE"];
+v27 -> v55 [label="demux_pe"];
+
+v55 [label="QIIME_PREPROCESS:QIIME_ITSXPRESS_PE"];
+v61 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+v55 -> v61 [label="itsxpress_pe_trimmed"];
+
+v55 [label="QIIME_PREPROCESS:QIIME_ITSXPRESS_PE"];
+v57 [shape=point];
+v55 -> v57 [label="itsxpress_pe_summary"];
+
+v55 [label="QIIME_PREPROCESS:QIIME_ITSXPRESS_PE"];
+v56 [shape=point];
+v55 -> v56;
+
+v30 [label="QIIME_IMPORT:QIIME_IMPORT_SE"];
+v58 [label="QIIME_PREPROCESS:QIIME_ITSXPRESS_SE"];
+v30 -> v58 [label="demux_r1"];
+
+v58 [label="QIIME_PREPROCESS:QIIME_ITSXPRESS_SE"];
+v62 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+v58 -> v62 [label="itsxpress_se_trimmed"];
+
+v58 [label="QIIME_PREPROCESS:QIIME_ITSXPRESS_SE"];
+v60 [shape=point];
+v58 -> v60 [label="itsxpress_se_summary"];
+
+v58 [label="QIIME_PREPROCESS:QIIME_ITSXPRESS_SE"];
+v59 [shape=point];
+v58 -> v59;
+
+v61 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+v65 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+v61 -> v65 [label="itsxpress_pe_input"];
+
+v62 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+v66 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+v62 -> v66 [label="itsxpress_se_input"];
+
+v63 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+v65 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+v63 -> v65 [label="cutadapt_pe_input"];
+
+v64 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+v66 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+v64 -> v66 [label="cutadapt_se_input"];
+
+v65 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+v67 [label="QIIME_DADA2:QIIME_DADA2_PE"];
+v65 -> v67 [label="paired_inputs"];
+
+v66 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+v71 [label="QIIME_DADA2:QIIME_DADA2_SE"];
+v66 -> v71 [label="single_inputs"];
+
+v67 [label="QIIME_DADA2:QIIME_DADA2_PE"];
+v70 [shape=point];
+v67 -> v70 [label="paired_results"];
+
+v67 [label="QIIME_DADA2:QIIME_DADA2_PE"];
+v69 [shape=point];
+v67 -> v69 [label="paired_stats"];
+
+v67 [label="QIIME_DADA2:QIIME_DADA2_PE"];
+v68 [shape=point];
+v67 -> v68 [label="paired_versions"];
+
+v71 [label="QIIME_DADA2:QIIME_DADA2_SE"];
+v74 [shape=point];
+v71 -> v74 [label="single_results"];
+
+v71 [label="QIIME_DADA2:QIIME_DADA2_SE"];
+v73 [shape=point];
+v71 -> v73 [label="single_stats"];
+
+v71 [label="QIIME_DADA2:QIIME_DADA2_SE"];
+v72 [shape=point];
+v71 -> v72 [label="single_versions"];
+
+}

@@ -11,6 +11,7 @@ include { BUILD_QIIME_MANIFEST } from './subworkflows/local/make_qiime_manifest'
 include { QIIME_IMPORT } from './subworkflows/local/qiime_import'
 include { QIIME_PREPROCESS } from './subworkflows/local/qiime_preprocess'
 include { QIIME_DADA2 } from './subworkflows/local/qiime_dada2'
+include { QIIME_TAXONOMY } from './subworkflows/local/qiime_taxonomy'
 
 workflow {
 
@@ -57,4 +58,12 @@ workflow {
         QIIME_PREPROCESS.out.primer_pe_trimmed,
         QIIME_PREPROCESS.out.primer_se_trimmed
     )
+    if (params.taxonomy_enabled) {
+        taxonomy_dada2_results = QIIME_DADA2.out.paired_results
+        .mix(QIIME_DADA2.out.single_results)
+  
+        QIIME_TAXONOMY(taxonomy_dada2_results)
+    }
+    
+    
 }
