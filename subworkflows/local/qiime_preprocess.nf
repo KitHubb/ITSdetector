@@ -62,7 +62,8 @@ workflow QIIME_PREPROCESS {
         itsxpress_se_trimmed = QIIME_ITSXPRESS_SE.out.trimmed
         itsxpress_se_summary = QIIME_ITSXPRESS_SE.out.summary
     }
-
+    
+     
     emit:
     primer_pe_trimmed = primer_pe_trimmed
     primer_pe_summary = primer_pe_summary
@@ -75,4 +76,5 @@ workflow QIIME_PREPROCESS {
 
     itsxpress_se_trimmed = itsxpress_se_trimmed
     itsxpress_se_summary = itsxpress_se_summary
+
 }
