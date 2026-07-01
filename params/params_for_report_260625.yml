@@ -1,0 +1,35 @@
+run_label: benchmark_q20_PE_itsxpress
+
+adapter_trim: true
+poly_g_trim: true
+poly_g_min_run: 10
+
+quality_trim: true
+quality_cutoff: 20
+
+apply_min_length: true
+min_length: 50
+
+preprocess_method: itsxpress
+analysis_mode: paired
+
+itsxpress_region: ITS2
+itsxpress_taxa: F
+itsxpress_cluster_id: 1.0
+
+dada2_trim_left_f: 0
+dada2_trim_left_r: 0
+dada2_trunc_len_f: 0
+dada2_trunc_len_r: 0
+dada2_max_ee_f: 4.0
+dada2_max_ee_r: 4.0
+dada2_trunc_q: 2
+dada2_min_overlap: 12
+dada2_max_merge_mismatch: 0
+dada2_trim_overhang: false
+dada2_pooling_method: independent
+dada2_chimera_method: consensus
+dada2_n_reads_learn: 1000000
+
+taxonomy_enabled: true
+blast_refseq_enabled: true
