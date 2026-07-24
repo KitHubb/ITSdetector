@@ -116,6 +116,9 @@ process QIIME_DADA2_SE {
       "\$XDG_CACHE_HOME"
 
     # Denoise single-end reads.
+    # For the ITSxpress + single-end benchmark branch, the input is routed
+    # from paired-end ITSxpress preprocessing by QIIME_PREPROCESS. This avoids
+    # R1-only ITSxpress extraction while still evaluating DADA2 in single-end mode.
     qiime dada2 denoise-single \
       --i-demultiplexed-seqs ${demux_se} \
       --p-trim-left ${params.dada2_trim_left} \

@@ -53,6 +53,10 @@ workflow {
         QIIME_IMPORT.out.demux_r1
     )
 
+    // For ITSxpress, preprocessing is always performed from paired-end input.
+    // If --analysis_mode single is requested, the paired-end ITSxpress-trimmed
+    // artifact is routed to DADA2 single-end denoising downstream. This avoids
+    // the unstable R1-only ITSxpress extraction path.
     QIIME_DADA2(
         QIIME_PREPROCESS.out.itsxpress_pe_trimmed,
         QIIME_PREPROCESS.out.itsxpress_se_trimmed,
