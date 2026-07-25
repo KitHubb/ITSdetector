@@ -1,57 +1,175 @@
 #!/usr/bin/env python3
 """
-Conservative species-only reconciliation of normalized QIIME and BLAST taxonomy.
+Reconcile normalized QIIME taxonomy with BLAST taxonomy evidence.
 
-Outputs:
-  taxonomy_blast.tsv
-  taxonomy_blast_qiime.tsv
-  taxonomy_blast_evidence.tsv
-  taxonomy_blast_changed.tsv
-  taxonomy_blast_report.tsv
+Default behavior is high-confidence species-level BLAST replacement:
+  BLAST top1 species is used when pident >= 99 and qcovus >= 99.
+
+Alternative modes:
+  high_confidence_species : replace with high-confidence BLAST species regardless of QIIME genus
+  same_genus_only         : legacy/conservative mode; replace only when QIIME and BLAST genus match
+  higher_rank_rescue      : replace when QIIME is unresolved above genus/species, or when genus matches
 """
 
 import argparse
-import re
+import math
 from pathlib import Path
-
 import pandas as pd
-
 
 RANKS = ["Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"]
 PREFIX = {
-    "Kingdom": "k__", "Phylum": "p__", "Class": "c__", "Order": "o__",
-    "Family": "f__", "Genus": "g__", "Species": "s__"
+    "Kingdom": "k__",
+    "Phylum": "p__",
+    "Class": "c__",
+    "Order": "o__",
+    "Family": "f__",
+    "Genus": "g__",
+    "Species": "s__",
 }
 MISSING = {"", ".", "na", "nan", "none", "null", "unassigned", "unclassified", "unknown"}
+PLACEHOLDER_SUFFIX = {
+    "Kingdom": "_k",
+    "Phylum": "_p",
+    "Class": "_c",
+    "Order": "_o",
+    "Family": "_f",
+    "Genus": "_g",
+    "Species": "_g",
+}
 
 
-def clean(x):
+def clean_taxon(x):
     if pd.isna(x):
         return ""
     x = str(x).strip()
     if x.lower() in MISSING:
         return ""
-    x = re.sub(r"^[kpcofgs]__", "", x, flags=re.I)
     return "_".join(x.split())
 
 
-def compare(x):
-    return clean(x).replace("_", "").lower()
+def clean_string(x):
+    if pd.isna(x):
+        return ""
+    return str(x).strip()
 
 
-def genus_resolved(x):
-    x = clean(x)
-    return bool(x) and not x.lower().endswith(("_k", "_p", "_c", "_o", "_f"))
+def to_float(x):
+    try:
+        if pd.isna(x) or str(x).strip() == "":
+            return math.nan
+        return float(x)
+    except Exception:
+        return math.nan
 
 
-def species_unresolved(species, genus):
-    return not clean(species) or clean(species).lower() == f"{clean(genus).lower()}_g"
+def is_present(x):
+    return clean_taxon(x) != ""
 
 
-def format_taxon(ranks):
-    if all(not ranks[r] for r in RANKS):
-        return "Unassigned"
-    return "; ".join(f"{PREFIX[r]}{ranks[r]}" for r in RANKS)
+def is_placeholder_value(x):
+    x = clean_taxon(x)
+    if not x:
+        return True
+    xl = x.lower()
+    return any(xl.endswith(s) for s in ["_k", "_p", "_c", "_o", "_f", "_g"])
+
+
+def has_resolved_genus(row):
+    return is_present(row.get("QIIME_Genus", "")) and not is_placeholder_value(row.get("QIIME_Genus", ""))
+
+
+def has_resolved_species(row):
+    return is_present(row.get("QIIME_Species", "")) and not is_placeholder_value(row.get("QIIME_Species", ""))
+
+
+def final_taxon_string(row, prefix="Final"):
+    parts = []
+    for rank in RANKS:
+        val = clean_taxon(row.get(f"{prefix}_{rank}", ""))
+        if val:
+            parts.append(f"{PREFIX[rank]}{val}")
+    return "; ".join(parts) if parts else "Unassigned"
+
+
+def qiime_output_taxon(row):
+    parts = []
+    for rank in RANKS:
+        val = clean_taxon(row.get(rank, ""))
+        if val:
+            parts.append(f"{PREFIX[rank]}{val}")
+    return "; ".join(parts) if parts else "Unassigned"
+
+
+def normalize_blast_kingdom(qiime_kingdom, blast_kingdom):
+    q = clean_taxon(qiime_kingdom)
+    b = clean_taxon(blast_kingdom)
+    if q:
+        return q
+    if b.lower() == "eukaryota":
+        return "Fungi"
+    return b
+
+
+def blast_passes(row, max_evalue, min_pident, min_qcovus):
+    e = to_float(row.get("BLAST_Top1_Evalue", ""))
+    p = to_float(row.get("BLAST_Top1_Pident", ""))
+    q = to_float(row.get("BLAST_Top1_Qcovus", ""))
+    if math.isnan(e) or math.isnan(p) or math.isnan(q):
+        return False
+    return e <= max_evalue and p >= min_pident and q >= min_qcovus
+
+
+def use_blast_lineage(row):
+    final = {}
+    for rank in RANKS:
+        b = clean_taxon(row.get(f"BLAST_Top1_{rank}", ""))
+        q = clean_taxon(row.get(f"QIIME_{rank}", ""))
+        if rank == "Kingdom":
+            final[rank] = normalize_blast_kingdom(q, b)
+        else:
+            final[rank] = b if b else q
+    return final
+
+
+def use_qiime_lineage(row):
+    return {rank: clean_taxon(row.get(f"QIIME_{rank}", "")) for rank in RANKS}
+
+
+def decide(row, args):
+    qiime_genus = clean_taxon(row.get("QIIME_Genus", ""))
+    blast_genus = clean_taxon(row.get("BLAST_Top1_Genus", ""))
+    blast_species = clean_taxon(row.get("BLAST_Top1_Species", ""))
+
+    ambiguous = str(row.get("BLAST_AmbiguousTopHit", "")).lower() in {"true", "1", "yes"}
+    cutoff_pass = blast_passes(row, args.species_max_evalue, args.species_min_pident, args.species_min_qcovus)
+    genus_match = bool(qiime_genus and blast_genus and qiime_genus.lower() == blast_genus.lower())
+    qiime_genus_resolved = has_resolved_genus(row)
+    qiime_species_resolved = has_resolved_species(row)
+    qiime_higher_rank_only = not qiime_genus_resolved or not qiime_species_resolved
+
+    if not blast_species:
+        return False, "qiime_retained_no_blast_species", "No BLAST species-level top hit was available.", cutoff_pass, genus_match
+    if ambiguous:
+        return False, "qiime_retained_ambiguous_blast", "BLAST top hit was ambiguous with an exact-score species conflict.", cutoff_pass, genus_match
+    if not cutoff_pass:
+        return False, "qiime_retained_blast_cutoff_fail", "BLAST top hit did not pass species-level replacement cutoffs.", cutoff_pass, genus_match
+
+    if args.reconcile_mode == "high_confidence_species":
+        return True, "blast_species_replaced_high_confidence", "BLAST species passed high-confidence replacement cutoffs. Genus concordance was not required.", cutoff_pass, genus_match
+
+    if args.reconcile_mode == "same_genus_only":
+        if genus_match:
+            return True, "blast_species_replaced_same_genus", "BLAST species passed cutoffs and BLAST genus matched QIIME genus.", cutoff_pass, genus_match
+        return False, "qiime_retained_genus_mismatch", "BLAST species passed cutoffs but BLAST genus did not match the resolved QIIME genus.", cutoff_pass, genus_match
+
+    if args.reconcile_mode == "higher_rank_rescue":
+        if genus_match:
+            return True, "blast_species_replaced_same_genus", "BLAST species passed cutoffs and BLAST genus matched QIIME genus.", cutoff_pass, genus_match
+        if qiime_higher_rank_only:
+            return True, "blast_species_rescued_higher_rank", "QIIME assignment was unresolved at genus/species level and BLAST species passed high-confidence cutoffs.", cutoff_pass, genus_match
+        return False, "qiime_retained_resolved_genus_conflict", "QIIME had a resolved genus/species assignment that conflicted with the BLAST genus.", cutoff_pass, genus_match
+
+    raise ValueError(f"Unsupported reconcile mode: {args.reconcile_mode}")
 
 
 def main():
@@ -60,125 +178,113 @@ def main():
     ap.add_argument("--blast-taxonomy", required=True)
     ap.add_argument("--output-dir", required=True)
     ap.add_argument("--min-qiime-confidence", type=float, default=0.7)
-    ap.add_argument("--max-evalue", type=float, default=1e-10)
-    ap.add_argument("--min-pident", type=float, default=99.0)
-    ap.add_argument("--min-qcovus", type=float, default=80.0)
+    ap.add_argument("--max-evalue", type=float, default=1e-10, help="Kept for backward compatibility.")
+    ap.add_argument("--min-pident", type=float, default=99.0, help="Kept for backward compatibility.")
+    ap.add_argument("--min-qcovus", type=float, default=80.0, help="Kept for backward compatibility.")
+    ap.add_argument("--reconcile-mode", choices=["high_confidence_species", "same_genus_only", "higher_rank_rescue"], default="high_confidence_species")
+    ap.add_argument("--species-max-evalue", type=float, default=None)
+    ap.add_argument("--species-min-pident", type=float, default=99.0)
+    ap.add_argument("--species-min-qcovus", type=float, default=99.0)
     args = ap.parse_args()
+
+    if args.species_max_evalue is None:
+        args.species_max_evalue = args.max_evalue
 
     out = Path(args.output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
-    q = pd.read_csv(args.qiime_normalized, sep="\t", dtype=str, keep_default_na=False)
-    b = pd.read_csv(args.blast_taxonomy, sep="\t", dtype=str, keep_default_na=False)
+    qi = pd.read_csv(args.qiime_normalized, sep="\t", dtype=str, keep_default_na=False)
+    bl = pd.read_csv(args.blast_taxonomy, sep="\t", dtype=str, keep_default_na=False)
 
-    if not {"Feature ID", "Taxon", "Confidence", *RANKS}.issubset(q.columns):
-        raise ValueError("Normalized QIIME table lacks required columns.")
+    required_qiime = {"Feature ID", "Taxon", "Confidence", "Taxon_Original", *RANKS}
+    missing = required_qiime - set(qi.columns)
+    if missing:
+        raise ValueError("Normalized QIIME taxonomy missing columns: " + ", ".join(sorted(missing)))
 
-    required_b = {
-        "ASV", "BLAST_Top1_Evalue", "BLAST_Top1_Bitscore",
-        "BLAST_Top1_Pident", "BLAST_Top1_Qcovus",
-        "BLAST_Top1_Genus", "BLAST_Top1_Species",
-        "BLAST_AmbiguousTopHit"
-    }
-    if not required_b.issubset(b.columns):
-        raise ValueError("BLAST taxonomy table lacks required columns.")
+    if bl.empty:
+        bl = pd.DataFrame(columns=["ASV"])
+    if "ASV" not in bl.columns:
+        raise ValueError("BLAST taxonomy table must contain ASV column.")
 
-    q = q.rename(columns={"Feature ID": "ASV"})
-    q["QIIME_ConfidenceNumeric"] = pd.to_numeric(q["Confidence"], errors="coerce")
+    qi = qi.rename(columns={
+        "Feature ID": "ASV",
+        "Taxon": "QIIME_Taxon_Normalized",
+        "Taxon_Original": "QIIME_Taxon_Original",
+        "Confidence": "QIIME_Confidence",
+        **{rank: f"QIIME_{rank}" for rank in RANKS},
+    })
 
-    for col in ["BLAST_Top1_Evalue", "BLAST_Top1_Bitscore", "BLAST_Top1_Pident", "BLAST_Top1_Qcovus"]:
-        b[col] = pd.to_numeric(b[col], errors="coerce")
+    merged = qi.merge(bl, on="ASV", how="left", validate="one_to_one")
+    for col in ["BLAST_Top1_Evalue", "BLAST_Top1_Pident", "BLAST_Top1_Qcovus"]:
+        if col not in merged.columns:
+            merged[col] = ""
+    for rank in RANKS:
+        col = f"BLAST_Top1_{rank}"
+        if col not in merged.columns:
+            merged[col] = ""
 
-    b["BLAST_AmbiguousTopHit"] = b["BLAST_AmbiguousTopHit"].astype(str).str.lower().eq("true")
-    x = q.merge(b, on="ASV", how="left", validate="one_to_one")
+    final_rows = []
+    evidence_rows = []
+    for _, row in merged.iterrows():
+        replace, status, reason, cutoff_pass, genus_match = decide(row, args)
+        lineage = use_blast_lineage(row) if replace else use_qiime_lineage(row)
 
-    rows = []
+        final_row = {"ASV": row["ASV"], **lineage}
+        for rank in RANKS:
+            row[f"Final_{rank}"] = lineage[rank]
+        final_row["Final_Taxon"] = final_taxon_string(row, prefix="Final")
+        final_row["Replacement_Status"] = status
+        final_row["Replacement_Reason"] = reason
+        final_rows.append(final_row)
 
-    for _, r in x.iterrows():
-        original = {rank: clean(r[rank]) for rank in RANKS}
-        final = original.copy()
-        blank = all(not original[rank] for rank in RANKS)
-        hit = pd.notna(r["BLAST_Top1_Evalue"])
+        ev = row.to_dict()
+        ev["QIIME_ConfidenceNumeric"] = to_float(ev.get("QIIME_Confidence", ""))
+        ev["Reconcile_Mode"] = args.reconcile_mode
+        ev["Species_Min_Pident"] = args.species_min_pident
+        ev["Species_Min_Qcovus"] = args.species_min_qcovus
+        ev["Species_Max_Evalue"] = args.species_max_evalue
+        ev["BLAST_CutoffPass"] = cutoff_pass
+        ev["BLAST_GenusMatch"] = genus_match
+        ev.update({f"Final_{rank}": lineage[rank] for rank in RANKS})
+        ev["Final_Taxon"] = final_row["Final_Taxon"]
+        ev["Replacement_Status"] = status
+        ev["Replacement_Reason"] = reason
+        evidence_rows.append(ev)
 
-        cutoff = bool(
-            hit
-            and r["BLAST_Top1_Evalue"] <= args.max_evalue
-            and r["BLAST_Top1_Pident"] >= args.min_pident
-            and r["BLAST_Top1_Qcovus"] >= args.min_qcovus
-        )
+    final = pd.DataFrame(final_rows)
+    evidence = pd.DataFrame(evidence_rows)
 
-        genus_match = bool(
-            hit and genus_resolved(original["Genus"])
-            and genus_resolved(r["BLAST_Top1_Genus"])
-            and compare(original["Genus"]) == compare(r["BLAST_Top1_Genus"])
-        )
-
-        if blank:
-            final = {rank: "" for rank in RANKS}
-            status, reason = "qiime_taxonomy_blank", "QIIME taxonomy was blank or unassigned."
-        elif pd.isna(r["QIIME_ConfidenceNumeric"]) or r["QIIME_ConfidenceNumeric"] < args.min_qiime_confidence:
-            final = {rank: "" for rank in RANKS}
-            status, reason = "qiime_low_confidence", "QIIME confidence was below threshold or missing."
-        elif not genus_resolved(original["Genus"]):
-            status, reason = "qiime_genus_unresolved", "QIIME genus was unresolved."
-        elif not species_unresolved(original["Species"], original["Genus"]):
-            status, reason = "qiime_species_retained", "QIIME already had a species-level assignment."
-        elif not hit:
-            status, reason = "no_eligible_blast_hit", "No strict BLAST candidate was available."
-        elif not cutoff:
-            status, reason = "blast_cutoff_failed", "Top BLAST hit failed strict species criteria."
-        elif bool(r["BLAST_AmbiguousTopHit"]):
-            status, reason = "ambiguous_blast_hit", "Top 1 and Top 2 had exact score ties but different species."
-        elif not genus_match:
-            status, reason = "genus_discordant", "QIIME and BLAST genus did not match."
-        elif not clean(r["BLAST_Top1_Species"]):
-            status, reason = "blast_species_unresolved", "BLAST lineage lacked species assignment."
-        else:
-            final["Species"] = clean(r["BLAST_Top1_Species"])
-            status, reason = "species_replaced_by_blast", "Strict BLAST evidence supported species-only replacement."
-
-        row = {
-            "ASV": r["ASV"],
-            "QIIME_Taxon_Original": r.get("Taxon_Original", ""),
-            "QIIME_Taxon_Normalized": r["Taxon"],
-            "QIIME_Confidence": r["Confidence"],
-            "QIIME_ConfidenceNumeric": r["QIIME_ConfidenceNumeric"],
-            **{f"QIIME_{rank}": original[rank] for rank in RANKS},
-            **{col: r.get(col, "") for col in b.columns if col != "ASV"},
-            "BLAST_CutoffPass": cutoff,
-            "BLAST_GenusMatch": genus_match,
-            **{f"Final_{rank}": final[rank] for rank in RANKS},
-            "Final_Taxon": format_taxon(final),
-            "Replacement_Status": status,
-            "Replacement_Reason": reason,
-        }
-        rows.append(row)
-
-    evidence = pd.DataFrame(rows)
-
-    final = evidence[
-        ["ASV", *[f"Final_{r}" for r in RANKS], "Final_Taxon", "Replacement_Status", "Replacement_Reason"]
-    ].rename(columns={f"Final_{r}": r for r in RANKS})
-
-    qiime = evidence[["ASV", "Final_Taxon", "QIIME_Confidence"]].rename(
-        columns={"ASV": "Feature ID", "Final_Taxon": "Taxon", "QIIME_Confidence": "Confidence"}
+    qiime_out = final[["ASV", "Final_Taxon"]].merge(
+        qi[["ASV", "QIIME_Confidence"]], on="ASV", how="left", validate="one_to_one"
     )
+    qiime_out = qiime_out.rename(columns={"ASV": "Feature ID", "Final_Taxon": "Taxon", "QIIME_Confidence": "Confidence"})
 
-    changed = evidence.loc[evidence["Replacement_Status"] == "species_replaced_by_blast"].copy()
-    report = evidence["Replacement_Status"].value_counts().rename_axis("Metric").reset_index(name="Value")
-    report = pd.concat(
-        [pd.DataFrame([{"Metric": "total_asvs", "Value": len(evidence)}]), report],
-        ignore_index=True
-    )
+    changed = evidence.loc[
+        evidence["Replacement_Status"].astype(str).str.startswith("blast_species_")
+        | evidence["Replacement_Status"].astype(str).str.contains("conflict", case=False, na=False)
+    ].copy()
+
+    report = []
+    report.append(("total_asvs", len(final)))
+    report.append(("reconcile_mode", args.reconcile_mode))
+    report.append(("species_min_pident", args.species_min_pident))
+    report.append(("species_min_qcovus", args.species_min_qcovus))
+    report.append(("species_max_evalue", args.species_max_evalue))
+    for status, n in final["Replacement_Status"].value_counts(dropna=False).sort_index().items():
+        report.append((status, int(n)))
+    report.append(("blast_cutoff_pass", int(evidence["BLAST_CutoffPass"].sum())))
+    report.append(("blast_genus_match", int(evidence["BLAST_GenusMatch"].sum())))
 
     final.to_csv(out / "taxonomy_blast.tsv", sep="\t", index=False)
-    qiime.to_csv(out / "taxonomy_blast_qiime.tsv", sep="\t", index=False)
+    qiime_out.to_csv(out / "taxonomy_blast_qiime.tsv", sep="\t", index=False)
     evidence.to_csv(out / "taxonomy_blast_evidence.tsv", sep="\t", index=False)
     changed.to_csv(out / "taxonomy_blast_changed.tsv", sep="\t", index=False)
-    report.to_csv(out / "taxonomy_blast_report.tsv", sep="\t", index=False)
+    pd.DataFrame(report, columns=["Metric", "Value"]).to_csv(out / "taxonomy_blast_report.tsv", sep="\t", index=False)
 
-    print(f"[INFO] Total ASVs: {len(evidence)}")
-    print(f"[INFO] Species replacements: {(evidence['Replacement_Status'] == 'species_replaced_by_blast').sum()}")
+    print(f"[INFO] Reconciled ASVs: {len(final)}")
+    print(f"[INFO] Reconcile mode: {args.reconcile_mode}")
+    print(f"[INFO] High-confidence BLAST cutoff: pident >= {args.species_min_pident}, qcovus >= {args.species_min_qcovus}, evalue <= {args.species_max_evalue}")
+    print(f"[INFO] BLAST replacements: {int(final['Replacement_Status'].astype(str).str.startswith('blast_species_').sum())}")
 
 
 if __name__ == "__main__":

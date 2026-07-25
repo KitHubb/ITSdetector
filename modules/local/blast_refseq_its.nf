@@ -110,10 +110,14 @@ process BLAST_REFSEQ_RECONCILE {
         --qiime-normalized normalized/taxonomy_normalized.tsv \
         --blast-taxonomy blast_taxonomy/blast_taxonomy.tsv \
         --output-dir final_taxonomy \
-        --min-qiime-confidence ${params.blast_min_qiime_confidence} \
-        --max-evalue ${params.blast_max_evalue} \
-        --min-pident ${params.blast_min_pident} \
-        --min-qcovus ${params.blast_min_qcovus}
+        --min-qiime-confidence ${params.blast_min_qiime_confidence ?: 0.7} \
+        --max-evalue ${params.blast_max_evalue ?: '1e-10'} \
+        --min-pident ${params.blast_min_pident ?: 99.0} \
+        --min-qcovus ${params.blast_min_qcovus ?: 80.0} \
+        --reconcile-mode ${params.blast_reconcile_mode ?: 'high_confidence_species'} \
+        --species-max-evalue ${params.blast_species_max_evalue ?: (params.blast_max_evalue ?: '1e-10')} \
+        --species-min-pident ${params.blast_species_min_pident ?: 99.0} \
+        --species-min-qcovus ${params.blast_species_min_qcovus ?: 99.0}
 
     cp normalized/taxonomy_normalized.tsv .
     cp blast_selection/blast_candidates_top5.tsv .
