@@ -7,6 +7,13 @@ Default mode: species_missing_rescue
   - If QIIME/UNITE species is missing, unresolved, or placeholder-like,
     replace with BLAST top1 species only when the BLAST hit passes
     species-level thresholds.
+  - Ambiguous BLAST top-hit conflicts are not rescued.
+
+Alternative mode: species_missing_top1_rescue
+  - Preserve existing resolved QIIME/UNITE species-level assignments.
+  - If QIIME/UNITE species is missing, unresolved, or placeholder-like,
+    replace with BLAST top1 species when the BLAST hit passes species-level thresholds,
+    even if the BLAST top hit is marked ambiguous.
 
 Alternative mode: same_genus_only
   - Replace with BLAST species only when QIIME/UNITE genus and BLAST genus match.
@@ -121,17 +128,27 @@ def decide(row, args):
 
     if not blast_species:
         return False, "qiime_retained_no_blast_species", "No BLAST species-level top hit was available.", cutoff_pass, genus_match
-    if ambiguous:
-        return False, "qiime_retained_ambiguous_blast", "BLAST top hit was ambiguous with an exact-score species conflict.", cutoff_pass, genus_match
+
     if not cutoff_pass:
         return False, "qiime_retained_blast_cutoff_fail", "BLAST top hit did not pass species-level replacement cutoffs.", cutoff_pass, genus_match
 
     if args.reconcile_mode == "species_missing_rescue":
+        if ambiguous:
+            return False, "qiime_retained_ambiguous_blast", "BLAST top hit was ambiguous with an exact-score species conflict.", cutoff_pass, genus_match
         if not qiime_species_resolved:
             return True, "blast_species_rescued_missing_qiime_species", "QIIME/UNITE species was missing or placeholder-like and BLAST species passed high-confidence cutoffs.", cutoff_pass, genus_match
         return False, "qiime_retained_resolved_species", "QIIME/UNITE already had a resolved species-level assignment; BLAST did not overwrite it in species_missing_rescue mode.", cutoff_pass, genus_match
 
+    if args.reconcile_mode == "species_missing_top1_rescue":
+        if not qiime_species_resolved:
+            if ambiguous:
+                return True, "blast_top1_species_rescued_ambiguous_missing_qiime_species", "QIIME/UNITE species was missing or placeholder-like and BLAST top1 species passed cutoffs; top1 was used despite ambiguous top-hit conflict.", cutoff_pass, genus_match
+            return True, "blast_top1_species_rescued_missing_qiime_species", "QIIME/UNITE species was missing or placeholder-like and BLAST top1 species passed high-confidence cutoffs.", cutoff_pass, genus_match
+        return False, "qiime_retained_resolved_species", "QIIME/UNITE already had a resolved species-level assignment; BLAST did not overwrite it in species_missing_top1_rescue mode.", cutoff_pass, genus_match
+
     if args.reconcile_mode == "same_genus_only":
+        if ambiguous:
+            return False, "qiime_retained_ambiguous_blast", "BLAST top hit was ambiguous with an exact-score species conflict.", cutoff_pass, genus_match
         if genus_match:
             return True, "blast_species_replaced_same_genus", "BLAST species passed cutoffs and BLAST genus matched QIIME/UNITE genus.", cutoff_pass, genus_match
         if qiime_genus_resolved:
@@ -150,7 +167,11 @@ def main():
     ap.add_argument("--max-evalue", type=float, default=1e-10, help="Kept for backward compatibility.")
     ap.add_argument("--min-pident", type=float, default=99.0, help="Kept for backward compatibility.")
     ap.add_argument("--min-qcovus", type=float, default=80.0, help="Kept for backward compatibility.")
-    ap.add_argument("--reconcile-mode", choices=["species_missing_rescue", "same_genus_only"], default="species_missing_rescue")
+    ap.add_argument(
+        "--reconcile-mode",
+        choices=["species_missing_rescue", "species_missing_top1_rescue", "same_genus_only"],
+        default="species_missing_rescue"
+    )
     ap.add_argument("--species-max-evalue", type=float, default=None)
     ap.add_argument("--species-min-pident", type=float, default=99.0)
     ap.add_argument("--species-min-qcovus", type=float, default=99.0)
@@ -233,6 +254,7 @@ def main():
 
     changed = evidence.loc[
         evidence["Replacement_Status"].astype(str).str.startswith("blast_species_")
+        | evidence["Replacement_Status"].astype(str).str.startswith("blast_top1_species_")
         | evidence["Replacement_Status"].astype(str).str.contains("mismatch|conflict", case=False, na=False)
     ].copy()
 
@@ -253,7 +275,10 @@ def main():
     changed.to_csv(out / "taxonomy_blast_changed.tsv", sep="\t", index=False)
     pd.DataFrame(report, columns=["Metric", "Value"]).to_csv(out / "taxonomy_blast_report.tsv", sep="\t", index=False)
 
-    replacements = int(final["Replacement_Status"].astype(str).str.startswith("blast_species_").sum())
+    replacements = int(
+        final["Replacement_Status"].astype(str).str.startswith("blast_species_").sum()
+        + final["Replacement_Status"].astype(str).str.startswith("blast_top1_species_").sum()
+    )
     print(f"[INFO] Reconciled ASVs: {len(final)}")
     print(f"[INFO] Reconcile mode: {args.reconcile_mode}")
     print(f"[INFO] Species rescue cutoff: pident >= {args.species_min_pident}, qcovus >= {args.species_min_qcovus}, evalue <= {args.species_max_evalue}")
