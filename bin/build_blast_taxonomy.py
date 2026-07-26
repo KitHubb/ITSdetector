@@ -97,7 +97,13 @@ def main():
             different_species = clean_taxon(top1["BLAST_Species"]).lower() != clean_taxon(top2["BLAST_Species"]).lower()
             same_scores = all(
                 float(top1[c]) == float(top2[c])
-                for c in ["BLAST_Evalue", "BLAST_Bitscore", "BLAST_Pident", "BLAST_Qcovus"]
+                for c in [
+                    "BLAST_Evalue",
+                    "BLAST_Bitscore",
+                    "BLAST_Pident",
+                    "BLAST_Qcovus",
+                    "BLAST_AlignmentLength",
+                ]
             )
             ambiguous = different_species and same_scores
 
@@ -123,6 +129,7 @@ def main():
             "BLAST_Top2_Bitscore": "BLAST_Bitscore",
             "BLAST_Top2_Pident": "BLAST_Pident",
             "BLAST_Top2_Qcovus": "BLAST_Qcovus",
+            "BLAST_Top2_AlignmentLength": "BLAST_AlignmentLength",
         }.items():
             row[out_col] = "" if top2 is None else top2[in_col]
         rows.append(row)

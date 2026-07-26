@@ -46,8 +46,8 @@ def main():
     ].copy()
 
     valid = valid.sort_values(
-        ["qacc", "evalue", "bitscore", "pident", "qcovus", "sacc"],
-        ascending=[True, True, False, False, False, True],
+        ["qacc", "evalue", "bitscore", "pident", "qcovus", "length", "sacc"],
+        ascending=[True, True, False, False, False, False, True],
         kind="mergesort",
     )
     valid["candidate_rank"] = valid.groupby("qacc").cumcount() + 1
