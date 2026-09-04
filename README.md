@@ -269,6 +269,32 @@ The report is planned to include:
 
 The final report will be designed for both technical review and study-level interpretation.
 
+## Runtime Reliability Notes
+
+### QIIME manifest paths
+
+The QIIME manifest is built from the absolute paths emitted directly by the `READ_CLEANUP` process. It does not reconstruct paths under `params.outdir`, because Nextflow `publishDir` copies are asynchronous and downstream validation may otherwise run before a large FASTQ has finished publishing.
+
+When the generated manifest refers to files under the run work directory, keep the work directory until QIIME import and all downstream processing have completed.
+
+### Singularity access to published results
+
+If a run needs to consume absolute paths under the results directory, expose that directory to Singularity. For example:
+
+```bash
+nextflow run main.nf \
+  -params-file params/params.yml \
+  --input samplesheet.validated.csv \
+  --outdir /absolute/path/to/results \
+  -work-dir /absolute/path/to/work \
+  -process.containerOptions '-B /absolute/path/to/results' \
+  -resume
+```
+
+### MultiQC container compatibility
+
+The MultiQC module provides a minimal task-local `ps` compatibility command. This is required by recent MultiQC Plotly rendering code when the QC container does not include the system `ps` utility.
+
 ## Directory Structure
 
 ```text

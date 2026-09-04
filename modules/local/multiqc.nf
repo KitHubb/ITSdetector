@@ -16,6 +16,11 @@ process MULTIQC {
 
     script:
     """
+    mkdir -p compat_bin
+    printf '#!/bin/sh\nexit 0\n' > compat_bin/ps
+    chmod +x compat_bin/ps
+    export PATH="\$PWD/compat_bin:\$PATH"
+
     multiqc \
       --force \
       --outdir . \

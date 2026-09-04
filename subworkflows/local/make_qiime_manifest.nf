@@ -6,14 +6,13 @@ workflow BUILD_QIIME_MANIFEST {
     cleaned_reads
 
     main:
-    output_root = file(params.outdir).toAbsolutePath()
-
     read_records_ch = cleaned_reads
         .map { meta, read1, read2 ->
 
             def sample_id = meta.id
-            def r1_path = "${output_root}/read_cleanup/${sample_id}.R1.clean.fastq.gz"
-            def r2_path = "${output_root}/read_cleanup/${sample_id}.R2.clean.fastq.gz"
+            // Use READ_CLEANUP outputs directly; publishDir copies asynchronously.
+            def r1_path = read1.toAbsolutePath()
+            def r2_path = read2.toAbsolutePath()
 
             "${sample_id}\t${r1_path}\t${r2_path}"
         }
