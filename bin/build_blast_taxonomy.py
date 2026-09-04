@@ -48,7 +48,7 @@ def main():
         raise ValueError("Candidate TSV missing columns: " + ", ".join(sorted(missing)))
 
     lineage = pd.read_csv(args.lineage, sep="\t", dtype=str, keep_default_na=False)
-    expected = {"TaxID", *RANKS}
+    expected = set(["TaxID"] + RANKS)
     missing = expected - set(lineage.columns)
     if missing:
         raise ValueError("Lineage TSV missing columns: " + ", ".join(sorted(missing)))
