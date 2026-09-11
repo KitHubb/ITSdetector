@@ -11,6 +11,7 @@ process QIIME_ITSXPRESS_PE {
 
     input:
     path demux_pe
+    path empty_pair_patch
 
     output:
     path "trimmed_itsxpress_pe.qza", emit: trimmed
@@ -26,12 +27,17 @@ process QIIME_ITSXPRESS_PE {
     export NUMBA_CACHE_DIR="\$PWD/numba_cache"
     export MPLCONFIGDIR="\$PWD/matplotlib_cache"
     export XDG_CACHE_HOME="\$PWD/xdg_cache"
+    export XDG_CONFIG_HOME="\$PWD/xdg_config"
+
+    # Load the ITSxpress 2.1.4 empty-mate safeguard only in this process.
+    export PYTHONPATH="\$PWD/${empty_pair_patch}"
 
     mkdir -p \
       "\$TMPDIR" \
       "\$NUMBA_CACHE_DIR" \
       "\$MPLCONFIGDIR" \
-      "\$XDG_CACHE_HOME"
+      "\$XDG_CACHE_HOME" \
+      "\$XDG_CONFIG_HOME"
 
     # Extract the target ITS region while retaining paired-end reads.
     qiime itsxpress trim-pair-output-unmerged \

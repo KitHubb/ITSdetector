@@ -58,7 +58,10 @@ workflow QIIME_PREPROCESS {
     if (params.preprocess_method in ['itsxpress', 'both'] &&
         params.analysis_mode in ['paired', 'single', 'both']) {
 
-        QIIME_ITSXPRESS_PE(demux_pe)
+        QIIME_ITSXPRESS_PE(
+            demux_pe,
+            file("${projectDir}/bin/itsxpress_empty_pair_patch", checkIfExists: true)
+        )
 
         itsxpress_pe_summary = QIIME_ITSXPRESS_PE.out.summary
 
