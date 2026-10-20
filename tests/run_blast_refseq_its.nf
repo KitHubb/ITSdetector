@@ -2,8 +2,8 @@ nextflow.enable.dsl = 2
 
 include {
     QIIME_EXPORT_REPSEQ
-    BLAST_REFSEQ_ITS
-    QIIME_IMPORT_BLAST_TAXONOMY
+    BLAST_REFSEQ_RECONCILE
+    QIIME_IMPORT_RECONCILED_TAXONOMY
 } from '../modules/local/blast_refseq_its'
 
 
@@ -37,9 +37,9 @@ workflow {
         )
     }
 
-    BLAST_REFSEQ_ITS(blast_input)
+    BLAST_REFSEQ_RECONCILE(blast_input)
 
-    QIIME_IMPORT_BLAST_TAXONOMY(
-        BLAST_REFSEQ_ITS.out.qiime_input
+    QIIME_IMPORT_RECONCILED_TAXONOMY(
+        BLAST_REFSEQ_RECONCILE.out.qiime_input
     )
 }

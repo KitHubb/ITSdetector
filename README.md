@@ -28,6 +28,7 @@ FASTQ input
   ├── Adapter and poly-G trimming
   ├── Optional quality filtering
   ├── Cleaned-read quality-control summary
+  ├── Post-cleanup FastQC and MultiQC
   ├── QIIME 2 import
   │
   └── ITS preprocessing

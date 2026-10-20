@@ -6,7 +6,6 @@ params.outdir = 'results'
 include { VALIDATE_SAMPLESHEET } from './modules/local/validate_samplesheet'
 include { RAW_QC } from './subworkflows/local/raw_qc'
 include { READ_CLEANUP } from './subworkflows/local/read_cleanup'
-include { CLEANUP_QC } from './subworkflows/local/cleanup_qc_summary'
 include { BUILD_QIIME_MANIFEST } from './subworkflows/local/make_qiime_manifest'
 include { QIIME_IMPORT } from './subworkflows/local/qiime_import'
 include { QIIME_PREPROCESS } from './subworkflows/local/qiime_preprocess'
@@ -33,10 +32,6 @@ workflow {
 
     READ_CLEANUP(
         VALIDATE_SAMPLESHEET.out.validated_samplesheet
-    )
-
-    CLEANUP_QC(
-        READ_CLEANUP.out.json
     )
 
     BUILD_QIIME_MANIFEST(

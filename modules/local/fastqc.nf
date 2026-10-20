@@ -3,9 +3,7 @@ process FASTQC {
     tag "${meta.id}:${reads.baseName}"
     label 'qc'
 
-    container "${params.qc_sif}"
-
-    publishDir "${params.outdir}/raw_qc/fastqc", mode: 'copy', overwrite: true
+    container "${params.fastqc_sif}"
 
     input:
     tuple val(meta), path(reads)

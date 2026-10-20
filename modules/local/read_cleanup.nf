@@ -28,7 +28,6 @@ process READ_CLEANUP_PE {
     def poly_g_args = params.poly_g_trim ?
         "-a '${poly_g}' -A '${poly_g}'" : ''
     
-    # 260911
     def poly_a = "A{${params.poly_a_min_run}}"
     def poly_a_args = params.poly_a_trim ?
     "-a '${poly_a}' -A '${poly_a}'" : ''

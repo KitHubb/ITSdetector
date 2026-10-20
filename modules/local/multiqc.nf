@@ -1,10 +1,8 @@
 process MULTIQC {
 
-    tag "raw_fastqc"
+    tag "fastqc"
 
-    container "${params.qc_sif}"
-
-    publishDir "${params.outdir}/raw_qc/multiqc", mode: 'copy', overwrite: true
+    container "${params.multiqc_sif}"
 
     input:
     path fastqc_zips
