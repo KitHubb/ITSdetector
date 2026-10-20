@@ -425,3 +425,27 @@ Citation information will be added after public release or publication of the wo
 
 License information will be added before public release.
 
+## Optional ITSx post-DADA2 comparison
+
+Set `--itsx_enabled true --preprocess_method primer` to preserve the original
+Cutadapt ASVs and add an ITSx-extracted `cutadapt_itsx` branch. See
+[ITSx ASV postprocessing](docs/itsx_asv.md) for configuration, retention reports,
+partial-mode comparisons, and real-container test commands.
+
+### Download the ITSx container
+
+The configured file `/data/software/singularity/itsx_1.1.3.sif` was built from
+the BioContainers image
+[`quay.io/biocontainers/itsx:1.1.3--hdfd78af_1`](https://quay.io/repository/biocontainers/itsx?tab=tags).
+The same Singularity image can be created directly from the online image:
+
+```bash
+mkdir -p /data/software/singularity
+singularity pull \
+  /data/software/singularity/itsx_1.1.3.sif \
+  docker://quay.io/biocontainers/itsx:1.1.3--hdfd78af_1
+```
+
+If the image is stored elsewhere, set `--itsx_container /path/to/itsx_1.1.3.sif`
+when running the pipeline. Package versions and alternative installation methods
+are listed in the [Bioconda ITSx recipe](https://bioconda.github.io/recipes/itsx/README.html).
