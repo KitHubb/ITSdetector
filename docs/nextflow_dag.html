@@ -1,0 +1,255 @@
+<!--
+  ~ Copyright 2013-2026, Seqera Labs
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<html>
+<head>
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
+</head>
+<body>
+<pre class="mermaid" style="text-align: center;">
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#B6ECE2',
+      'primaryTextColor': '#160F26',
+      'primaryBorderColor': '#065647',
+      'lineColor': '#545555',
+      'clusterBkg': '#BABCBD22',
+      'clusterBorder': '#DDDEDE',
+      'fontFamily': 'arial'
+    }
+  }
+}%%
+flowchart TB
+    subgraph " "
+    v0["channel.fromPath"]
+    v42["channel.empty"]
+    v44["channel.empty"]
+    v46["channel.empty"]
+    v48["channel.empty"]
+    v50["channel.empty"]
+    v51["channel.empty"]
+    v53["channel.empty"]
+    v54["channel.empty"]
+    v81["collapse_script"]
+    end
+    v1(["VALIDATE_SAMPLESHEET"])
+    subgraph "RAW_QC [RAW_QC]"
+    v4(["FASTQC"])
+    v8(["MULTIQC"])
+    v2(( ))
+    v6(( ))
+    end
+    subgraph " "
+    v5[" "]
+    v9[" "]
+    v10[" "]
+    v11["multiqc_report"]
+    v16[" "]
+    v17["cutadapt_log"]
+    v20[" "]
+    v21["cleanup_summary"]
+    v24[" "]
+    v28[" "]
+    v29["post_cleanup_multiqc_data"]
+    v30["post_cleanup_multiqc_report"]
+    v34[" "]
+    v35["validation"]
+    v37[" "]
+    v38["demux_pe_qzv"]
+    v40[" "]
+    v41["demux_r1_qzv"]
+    v43["primer_pe_trimmed"]
+    v45["primer_pe_summary"]
+    v47["primer_se_trimmed"]
+    v49["primer_se_summary"]
+    v52["itsxpress_pe_summary"]
+    v55["itsxpress_se_summary"]
+    v57[" "]
+    v58["primer_pe_summary"]
+    v60[" "]
+    v61["primer_se_summary"]
+    v69["paired_versions"]
+    v70["paired_stats"]
+    v72["single_versions"]
+    v73["single_stats"]
+    v79["extraction_reports"]
+    v83["versions"]
+    v84["collapse_reports"]
+    v88["versions"]
+    v89["phylogeny_results"]
+    v93["versions"]
+    v104[" "]
+    v105[" "]
+    v106[" "]
+    v107[" "]
+    v108["taxonomy_blast_report"]
+    v109["taxonomy_blast_changed"]
+    v110["taxonomy_blast_evidence"]
+    v111["taxonomy_blast_tables"]
+    v113["taxonomy_blast_results"]
+    end
+    subgraph "READ_CLEANUP [READ_CLEANUP]"
+    v15(["READ_CLEANUP_PE"])
+    v19(["CLEANUP_QC_SUMMARY"])
+    v23(["POST_CLEANUP_FASTQC"])
+    v27(["POST_CLEANUP_MULTIQC"])
+    v12(( ))
+    v18(( ))
+    v22(( ))
+    v25(( ))
+    end
+    subgraph "BUILD_QIIME_MANIFEST [BUILD_QIIME_MANIFEST]"
+    v33(["MAKE_QIIME_MANIFEST"])
+    v31(( ))
+    end
+    subgraph "QIIME_IMPORT [QIIME_IMPORT]"
+    v36(["QIIME_IMPORT_PE"])
+    v39(["QIIME_IMPORT_SE"])
+    end
+    subgraph "QIIME_PREPROCESS [QIIME_PREPROCESS]"
+    v56(["QIIME_CUTADAPT_PRIMER_PE"])
+    v59(["QIIME_CUTADAPT_PRIMER_SE"])
+    end
+    subgraph "QIIME_DADA2 [QIIME_DADA2]"
+    v68(["QIIME_DADA2_PE"])
+    v71(["QIIME_DADA2_SE"])
+    v62(( ))
+    v63(( ))
+    end
+    subgraph "POST_DADA2_ITSX [POST_DADA2_ITSX]"
+    v77(["QIIME_EXPORT_ASVS_FOR_ITSX"])
+    v78(["ITSX_EXTRACT_ASV_ITS2"])
+    v82(["QIIME_COLLAPSE_ITSX_ITS2"])
+    v80(( ))
+    end
+    subgraph "QIIME_PHYLOGENY [QIIME_PHYLOGENY]"
+    v87(["QIIME_PHYLOGENY_FASTTREE"])
+    v86(( ))
+    end
+    subgraph "QIIME_TAXONOMY [QIIME_TAXONOMY]"
+    v92(["QIIME_TAXONOMY_CLASSIFIER"])
+    v90(( ))
+    v91(( ))
+    end
+    subgraph "BLAST_REFSEQ_ITS_WORKFLOW [BLAST_REFSEQ_ITS_WORKFLOW]"
+    v99(["QIIME_EXPORT_REPSEQ"])
+    v103(["BLAST_REFSEQ_RECONCILE"])
+    v112(["QIIME_IMPORT_RECONCILED_TAXONOMY"])
+    v97(( ))
+    v98(( ))
+    end
+    v74(( ))
+    v0 --> v1
+    v1 --> v2
+    v1 --> v12
+    v2 --> v4
+    v4 --> v5
+    v4 --> v6
+    v6 --> v8
+    v8 --> v11
+    v8 --> v10
+    v8 --> v9
+    v12 --> v15
+    v15 --> v17
+    v15 --> v16
+    v15 --> v18
+    v15 --> v22
+    v15 --> v31
+    v18 --> v19
+    v19 --> v21
+    v19 --> v20
+    v22 --> v23
+    v23 --> v24
+    v23 --> v25
+    v25 --> v27
+    v27 --> v30
+    v27 --> v29
+    v27 --> v28
+    v31 --> v33
+    v33 --> v36
+    v33 --> v39
+    v33 --> v35
+    v33 --> v34
+    v36 --> v56
+    v36 --> v38
+    v36 --> v37
+    v39 --> v59
+    v39 --> v41
+    v39 --> v40
+    v42 --> v43
+    v44 --> v45
+    v46 --> v47
+    v48 --> v49
+    v50 --> v62
+    v51 --> v52
+    v53 --> v63
+    v54 --> v55
+    v56 --> v58
+    v56 --> v57
+    v56 --> v62
+    v59 --> v61
+    v59 --> v60
+    v59 --> v63
+    v62 --> v68
+    v68 --> v70
+    v68 --> v69
+    v68 --> v74
+    v63 --> v71
+    v71 --> v73
+    v71 --> v72
+    v71 --> v74
+    v74 --> v77
+    v77 --> v78
+    v78 --> v79
+    v78 --> v80
+    v81 --> v82
+    v80 --> v82
+    v82 --> v84
+    v82 --> v83
+    v82 --> v74
+    v86 --> v87
+    v87 --> v89
+    v87 --> v88
+    v91 --> v92
+    v92 --> v93
+    v92 --> v90
+    v97 --> v99
+    v99 --> v98
+    v98 --> v103
+    v103 --> v112
+    v103 --> v111
+    v103 --> v110
+    v103 --> v109
+    v103 --> v108
+    v103 --> v107
+    v103 --> v106
+    v103 --> v105
+    v103 --> v104
+    v112 --> v113
+    v74 --> v86
+    v74 --> v90
+    v74 --> v91
+    v90 --> v97
+    v90 --> v98
+
+</pre>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, maxTextSize: Number.MAX_SAFE_INTEGER, maxEdges: Number.MAX_SAFE_INTEGER });
+</script>
+</body>
+</html>
