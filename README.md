@@ -20,12 +20,6 @@ The primary goals of ITSdetector are to:
 
 ## Current Workflow
 
-### v2_dev post-DADA2 ITSx flowchart
-
-[![ITSdetector post-DADA2 ITSx workflow](docs/pipeline_post_dada2_itsx.svg)](docs/pipeline_flowchart.md)
-
-See the [flowchart notes and native Nextflow DAG instructions](docs/pipeline_flowchart.md), or open the generated [interactive DAG](docs/nextflow_dag.html).
-
 ```text
 FASTQ input
   │
@@ -44,7 +38,7 @@ FASTQ input
        └── Cutadapt primer trimming forward-read-only
 ```
 
-Downstream modules include DADA2 denoising, optional post-DADA2 ITS extraction and exact-sequence collapse, phylogeny, taxonomy assignment, RefSeq ITS BLAST reconciliation, export, and analysis reports.
+Downstream modules will include DADA2 denoising, taxonomy assignment, taxonomic refinement, benchmarking, export, and automated reporting.
 
 ## Design Principles
 

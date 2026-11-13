@@ -41,10 +41,11 @@ flowchart TB
     v46["channel.empty"]
     v48["channel.empty"]
     v50["channel.empty"]
-    v51["channel.empty"]
-    v53["channel.empty"]
+    v52["channel.empty"]
     v54["channel.empty"]
-    v81["collapse_script"]
+    v56["channel.empty"]
+    v64["empty_pair_patch"]
+    v87["collapse_script"]
     end
     v1(["VALIDATE_SAMPLESHEET"])
     subgraph "RAW_QC [RAW_QC]"
@@ -76,31 +77,35 @@ flowchart TB
     v45["primer_pe_summary"]
     v47["primer_se_trimmed"]
     v49["primer_se_summary"]
-    v52["itsxpress_pe_summary"]
-    v55["itsxpress_se_summary"]
-    v57[" "]
-    v58["primer_pe_summary"]
-    v60[" "]
-    v61["primer_se_summary"]
-    v69["paired_versions"]
-    v70["paired_stats"]
-    v72["single_versions"]
-    v73["single_stats"]
-    v79["extraction_reports"]
-    v83["versions"]
-    v84["collapse_reports"]
-    v88["versions"]
-    v89["phylogeny_results"]
-    v93["versions"]
-    v104[" "]
-    v105[" "]
-    v106[" "]
-    v107[" "]
-    v108["taxonomy_blast_report"]
-    v109["taxonomy_blast_changed"]
-    v110["taxonomy_blast_evidence"]
-    v111["taxonomy_blast_tables"]
-    v113["taxonomy_blast_results"]
+    v51["itsxpress_pe_trimmed"]
+    v53["itsxpress_pe_summary"]
+    v55["itsxpress_se_trimmed"]
+    v57["itsxpress_se_summary"]
+    v59[" "]
+    v60["primer_pe_summary"]
+    v62[" "]
+    v63["primer_se_summary"]
+    v66[" "]
+    v67["itsxpress_se_summary"]
+    v75["paired_versions"]
+    v76["paired_stats"]
+    v78["single_versions"]
+    v79["single_stats"]
+    v85["extraction_reports"]
+    v89["versions"]
+    v90["collapse_reports"]
+    v94["versions"]
+    v95["phylogeny_results"]
+    v99["versions"]
+    v110[" "]
+    v111[" "]
+    v112[" "]
+    v113[" "]
+    v114["taxonomy_blast_report"]
+    v115["taxonomy_blast_changed"]
+    v116["taxonomy_blast_evidence"]
+    v117["taxonomy_blast_tables"]
+    v119["taxonomy_blast_results"]
     end
     subgraph "READ_CLEANUP [READ_CLEANUP]"
     v15(["READ_CLEANUP_PE"])
@@ -121,38 +126,39 @@ flowchart TB
     v39(["QIIME_IMPORT_SE"])
     end
     subgraph "QIIME_PREPROCESS [QIIME_PREPROCESS]"
-    v56(["QIIME_CUTADAPT_PRIMER_PE"])
-    v59(["QIIME_CUTADAPT_PRIMER_SE"])
+    v58(["QIIME_CUTADAPT_PRIMER_PE"])
+    v61(["QIIME_CUTADAPT_PRIMER_SE"])
+    v65(["QIIME_ITSXPRESS_PE"])
     end
     subgraph "QIIME_DADA2 [QIIME_DADA2]"
-    v68(["QIIME_DADA2_PE"])
-    v71(["QIIME_DADA2_SE"])
-    v62(( ))
-    v63(( ))
+    v74(["QIIME_DADA2_PE"])
+    v77(["QIIME_DADA2_SE"])
+    v68(( ))
+    v69(( ))
     end
     subgraph "POST_DADA2_ITSX [POST_DADA2_ITSX]"
-    v77(["QIIME_EXPORT_ASVS_FOR_ITSX"])
-    v78(["ITSX_EXTRACT_ASV_ITS2"])
-    v82(["QIIME_COLLAPSE_ITSX_ITS2"])
-    v80(( ))
-    end
-    subgraph "QIIME_PHYLOGENY [QIIME_PHYLOGENY]"
-    v87(["QIIME_PHYLOGENY_FASTTREE"])
+    v83(["QIIME_EXPORT_ASVS_FOR_ITSX"])
+    v84(["ITSX_EXTRACT_ASV_ITS2"])
+    v88(["QIIME_COLLAPSE_ITSX_ITS2"])
     v86(( ))
     end
+    subgraph "QIIME_PHYLOGENY [QIIME_PHYLOGENY]"
+    v93(["QIIME_PHYLOGENY_FASTTREE"])
+    v92(( ))
+    end
     subgraph "QIIME_TAXONOMY [QIIME_TAXONOMY]"
-    v92(["QIIME_TAXONOMY_CLASSIFIER"])
-    v90(( ))
-    v91(( ))
+    v98(["QIIME_TAXONOMY_CLASSIFIER"])
+    v96(( ))
+    v97(( ))
     end
     subgraph "BLAST_REFSEQ_ITS_WORKFLOW [BLAST_REFSEQ_ITS_WORKFLOW]"
-    v99(["QIIME_EXPORT_REPSEQ"])
-    v103(["BLAST_REFSEQ_RECONCILE"])
-    v112(["QIIME_IMPORT_RECONCILED_TAXONOMY"])
-    v97(( ))
-    v98(( ))
+    v105(["QIIME_EXPORT_REPSEQ"])
+    v109(["BLAST_REFSEQ_RECONCILE"])
+    v118(["QIIME_IMPORT_RECONCILED_TAXONOMY"])
+    v103(( ))
+    v104(( ))
     end
-    v74(( ))
+    v80(( ))
     v0 --> v1
     v1 --> v2
     v1 --> v12
@@ -184,67 +190,73 @@ flowchart TB
     v33 --> v39
     v33 --> v35
     v33 --> v34
-    v36 --> v56
+    v36 --> v58
     v36 --> v38
     v36 --> v37
-    v39 --> v59
+    v36 --> v65
+    v39 --> v61
     v39 --> v41
     v39 --> v40
     v42 --> v43
     v44 --> v45
     v46 --> v47
     v48 --> v49
-    v50 --> v62
-    v51 --> v52
-    v53 --> v63
+    v50 --> v51
+    v52 --> v53
     v54 --> v55
-    v56 --> v58
     v56 --> v57
-    v56 --> v62
-    v59 --> v61
-    v59 --> v60
-    v59 --> v63
-    v62 --> v68
-    v68 --> v70
-    v68 --> v69
+    v58 --> v60
+    v58 --> v59
+    v58 --> v68
+    v61 --> v63
+    v61 --> v62
+    v61 --> v69
+    v64 --> v65
+    v65 --> v67
+    v65 --> v66
+    v65 --> v68
+    v65 --> v69
     v68 --> v74
-    v63 --> v71
-    v71 --> v73
-    v71 --> v72
-    v71 --> v74
-    v74 --> v77
+    v74 --> v76
+    v74 --> v75
+    v74 --> v80
+    v69 --> v77
+    v77 --> v79
     v77 --> v78
-    v78 --> v79
-    v78 --> v80
-    v81 --> v82
-    v80 --> v82
-    v82 --> v84
-    v82 --> v83
-    v82 --> v74
-    v86 --> v87
-    v87 --> v89
+    v77 --> v80
+    v80 --> v83
+    v83 --> v84
+    v84 --> v85
+    v84 --> v86
     v87 --> v88
-    v91 --> v92
+    v86 --> v88
+    v88 --> v90
+    v88 --> v89
+    v88 --> v80
     v92 --> v93
-    v92 --> v90
-    v97 --> v99
-    v99 --> v98
-    v98 --> v103
-    v103 --> v112
-    v103 --> v111
-    v103 --> v110
-    v103 --> v109
-    v103 --> v108
-    v103 --> v107
-    v103 --> v106
+    v93 --> v95
+    v93 --> v94
+    v97 --> v98
+    v98 --> v99
+    v98 --> v96
     v103 --> v105
-    v103 --> v104
-    v112 --> v113
-    v74 --> v86
-    v74 --> v90
-    v74 --> v91
-    v90 --> v97
-    v90 --> v98
+    v105 --> v104
+    v104 --> v109
+    v109 --> v118
+    v109 --> v117
+    v109 --> v116
+    v109 --> v115
+    v109 --> v114
+    v109 --> v113
+    v109 --> v112
+    v109 --> v111
+    v109 --> v110
+    v118 --> v119
+    v80 --> v92
+    v80 --> v96
+    v80 --> v97
+    v96 --> v103
+    v96 --> v104
 
 </pre>
 <script type="module">
